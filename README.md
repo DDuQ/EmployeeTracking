@@ -1,3 +1,4 @@
 # EmployeeTracking
 
-Taller de Azure Functions para hacer seguimiento al horario de los empleados
+Taller de Azure Functions para hacer seguimiento al horario de los empleados.
+
