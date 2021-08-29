@@ -24,8 +24,6 @@ namespace EmployeeTracking.Functions.Functions
         {
             log.LogInformation("Received a new Entry");
 
-            string name = req.Query["name"];
-
             string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
             Employee employee = JsonConvert.DeserializeObject<Employee>(requestBody);
 
@@ -56,6 +54,137 @@ namespace EmployeeTracking.Functions.Functions
             await employeeTable.ExecuteAsync(addOperation);
 
             string message = "New employee track stored in table.";
+            log.LogInformation(message);
+
+            return new OkObjectResult(new Response
+            {
+                isSuccess = true,
+                message = message,
+                result = employeeEntity
+            });
+        }
+
+        [FunctionName(nameof(UpdateEntry))]
+        public static async Task<IActionResult> UpdateEntry(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "put", Route = "employee/{id}")] HttpRequest req,
+            [Table("time", Connection = "AzureWebJobsStorage")] CloudTable employeeTable,
+            string id,
+            ILogger log)
+        {
+            log.LogInformation($"Update for Entry: {id} received.");
+
+            string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
+            Employee employee = JsonConvert.DeserializeObject<Employee>(requestBody);
+
+            //Validate Employee
+            TableOperation findOperation = TableOperation.Retrieve<EmployeeEntity>("TIME", id);
+            TableResult findResult = await employeeTable.ExecuteAsync(findOperation);
+
+            if (findResult.Result == null)
+            {
+                new BadRequestObjectResult(new Response
+                {
+                    isSuccess = false,
+                    message = "Employee not found."
+                });
+            }
+
+            //Update Employee
+            EmployeeEntity employeeEntity = (EmployeeEntity)findResult.Result;
+            if (!string.IsNullOrEmpty(employee.Date.ToString()))
+            {
+                employeeEntity.Date = employee.Date;
+            }
+
+            TableOperation updateOperation = TableOperation.Replace(employeeEntity);
+            await employeeTable.ExecuteAsync(updateOperation);
+
+            string message = $"Employee: {id}, updated in table.";
+            log.LogInformation(message);
+
+            return new OkObjectResult(new Response
+            {
+                isSuccess = true,
+                message = message,
+                result = employeeEntity
+            });
+        }
+
+        [FunctionName(nameof(GetAllEmployeeEntries))]
+        public static async Task<IActionResult> GetAllEmployeeEntries(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "employee")] HttpRequest req,
+            [Table("time", Connection = "AzureWebJobsStorage")] CloudTable employeeTable,
+            ILogger log)
+        {
+            log.LogInformation("Get all Employee entries received.");
+
+            TableQuery<EmployeeEntity> query = new TableQuery<EmployeeEntity>();
+            TableQuerySegment<EmployeeEntity> employees = await employeeTable.ExecuteQuerySegmentedAsync<EmployeeEntity>(query, null);
+
+            string message = "Retrieved all Employee entries.";
+            log.LogInformation(message);
+
+            return new OkObjectResult(new Response
+            {
+                isSuccess = true,
+                message = message,
+                result = employees
+            });
+        }
+
+        [FunctionName(nameof(DeleteEntry))]
+        public static async Task<IActionResult> DeleteEntry(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "delete", Route = "employee/{id}")] HttpRequest req,
+            [Table("time", "TIME", "{id}", Connection = "AzureWebJobsStorage")] EmployeeEntity employeeEntity,
+            [Table("time", Connection = "AzureWebJobsStorage")] CloudTable employeeTable,
+            string id,
+            ILogger log)
+        {
+            log.LogInformation($"Delete for Entry: {id} received.");
+
+            if (employeeEntity == null)
+            {
+                new BadRequestObjectResult(new Response
+                {
+                    isSuccess = false,
+                    message = "Employee not found."
+                });
+            }
+
+            //Delete Employee
+            await employeeTable.ExecuteAsync(TableOperation.Delete(employeeEntity));
+
+            string message = $"Employee: {employeeEntity.RowKey}, has been deleted.";
+            log.LogInformation(message);
+
+            return new OkObjectResult(new Response
+            {
+                isSuccess = true,
+                message = message,
+                result = employeeEntity
+            });
+        }
+
+        [FunctionName(nameof(GetEntryById))]
+        public static Task<IActionResult> GetEntryById(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "employee/{id}")] HttpRequest req,
+            [Table("time", "TIME", "{id}", Connection = "AzureWebJobsStorage")] EmployeeEntity employeeEntity,
+            [Table("time", Connection = "AzureWebJobsStorage")] CloudTable employeeTable,
+            string id,
+            ILogger log)
+        {
+            log.LogInformation($"Get Entry: {id} received.");
+
+            if (employeeEntity == null)
+            {
+                new BadRequestObjectResult(new Response
+                {
+                    isSuccess = false,
+                    message = "Employee not found."
+                });
+            }
+
+            string message = $"Employee: {employeeEntity.RowKey}, has been retrieved.";
             log.LogInformation(message);
 
             return new OkObjectResult(new Response
