@@ -3,7 +3,7 @@ using System;
 
 namespace EmployeeTracking.Functions.Entities
 {
-    public class Consolidated : TableEntity
+    public class ConsolidatedEntity : TableEntity
     {
         public int employeeId { get; set; }
         public DateTime date { get; set; }
