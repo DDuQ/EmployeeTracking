@@ -5,8 +5,9 @@ namespace EmployeeTracking.Functions.Entities
 {
     public class ConsolidatedEntity : TableEntity
     {
-        public int employeeId { get; set; }
-        public DateTime date { get; set; }
-        public int minutesWorked { get; set; }
+        public int EmployeeId { get; set; }
+        public DateTime Date { get; set; }
+        public int Type { get; set; }
+        public bool IsConsolidated { get; set; }
     }
 }

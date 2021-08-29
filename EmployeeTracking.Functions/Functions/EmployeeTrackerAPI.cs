@@ -29,9 +29,9 @@ namespace EmployeeTracking.Functions.Functions
             string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
             Employee employee = JsonConvert.DeserializeObject<Employee>(requestBody);
 
-            if (string.IsNullOrEmpty(employee?.employeeId.ToString()) ||
-                string.IsNullOrEmpty(employee?.date.ToString()) ||
-                string.IsNullOrEmpty(employee?.type.ToString()))
+            if (string.IsNullOrEmpty(employee?.EmployeeId.ToString()) ||
+                string.IsNullOrEmpty(employee?.Date.ToString()) ||
+                string.IsNullOrEmpty(employee?.Type.ToString()))
             {
                 return new BadRequestObjectResult(new Response
                 {
@@ -42,11 +42,11 @@ namespace EmployeeTracking.Functions.Functions
 
             EmployeeEntity employeeEntity = new EmployeeEntity
             {
-                date = employee.date,
-                type = employee.type,
-                employeeId = employee.employeeId,
+                Date = employee.Date,
+                Type = employee.Type,
+                EmployeeId = employee.EmployeeId,
                 ETag = "*",
-                isConsolidated = false,
+                IsConsolidated = false,
                 PartitionKey = "TIME",
                 RowKey = Guid.NewGuid().ToString(),
 

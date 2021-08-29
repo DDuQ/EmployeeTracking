@@ -4,9 +4,9 @@ namespace EmployeeTracking.Common.Models
 {
     public class Employee
     {
-        public int employeeId { get; set; }
-        public DateTime date { get; set; }
-        public int type { get; set; }
-        public bool isConsolidated { get; set; }
+        public int EmployeeId { get; set; }
+        public DateTime Date { get; set; }
+        public int Type { get; set; }
+        public bool IsConsolidated { get; set; }
     }
 }
