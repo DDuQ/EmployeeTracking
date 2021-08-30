@@ -166,7 +166,7 @@ namespace EmployeeTracking.Functions.Functions
         }
 
         [FunctionName(nameof(GetEntryById))]
-        public static Task<IActionResult> GetEntryById(
+        public static IActionResult GetEntryById(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "employee/{id}")] HttpRequest req,
             [Table("time", "TIME", "{id}", Connection = "AzureWebJobsStorage")] EmployeeEntity employeeEntity,
             [Table("time", Connection = "AzureWebJobsStorage")] CloudTable employeeTable,
