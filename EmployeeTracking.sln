@@ -3,11 +3,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.31624.102
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EmployeeTracking.Common", "EmployeeTracking.Common\EmployeeTracking.Common.csproj", "{7465A6DC-4C9E-4BAA-872B-22817E63ED64}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EmployeeTracking.Common", "EmployeeTracking.Common\EmployeeTracking.Common.csproj", "{7465A6DC-4C9E-4BAA-872B-22817E63ED64}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EmployeeTracking.Functions", "EmployeeTracking.Functions\EmployeeTracking.Functions.csproj", "{08E8FCE2-9AB0-4328-BBA2-182A5EB235E3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EmployeeTracking.Functions", "EmployeeTracking.Functions\EmployeeTracking.Functions.csproj", "{08E8FCE2-9AB0-4328-BBA2-182A5EB235E3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EmployeeTracking.Tests", "EmployeeTracking.Tests\EmployeeTracking.Tests.csproj", "{B2287B97-448D-4B7D-9544-9D2496CF83E8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EmployeeTracking.Tests", "EmployeeTracking.Tests\EmployeeTracking.Tests.csproj", "{B2287B97-448D-4B7D-9544-9D2496CF83E8}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
