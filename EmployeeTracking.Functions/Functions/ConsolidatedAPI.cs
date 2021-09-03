@@ -27,25 +27,37 @@ namespace EmployeeTracking.Functions.Functions
         {
             log.LogInformation("Time consolidation received.");
 
-            string filter = TableQuery.GenerateFilterConditionForBool("IsConsolidated", QueryComparisons.Equal, false);
-            TableQuery<EmployeeEntity> query = new TableQuery<EmployeeEntity>().Where(filter);
+            string employeeFilter = TableQuery.GenerateFilterConditionForBool("IsConsolidated", QueryComparisons.Equal, false);
+            TableQuery<EmployeeEntity> query = new TableQuery<EmployeeEntity>().Where(employeeFilter);
             TableQuerySegment<EmployeeEntity> notConsolidatedTimes = await employeeTable.ExecuteQuerySegmentedAsync(query, null);
 
-            List<EmployeeEntity> array = notConsolidatedTimes.Results.OrderBy(t => t.EmployeeId).ToList();
+            List<EmployeeEntity> employeeArray = notConsolidatedTimes.Results.OrderBy(t => t.EmployeeId).ThenBy(t => t.Date).ToList();
             TimeSpan consolidatedTime;
-            double consolidated = 0;
+            int consolidated = 0;
             int index = 0;
+            int minutes = 0;
             int updated = 0;
 
-            while (index <= array.Count)
+            while (index <= employeeArray.Count)
             {
-                consolidated = Math.Ceiling((double)2.5);
-                if (array[index].Type == IN)
+                //iterations = GetNumberOfIterations(employeeArray, index);
+                if (employeeArray[index].Type == IN)
                 {
-                    if (array[index].EmployeeId == array[index + 1].EmployeeId
-                       && array[index].Type != array[index + 1].Type)
+                    if (employeeArray[index].EmployeeId == employeeArray[index + 1].EmployeeId
+                       && employeeArray[index].Type != employeeArray[index + 1].Type)
                     {
-                        consolidatedTime = array[index + 1].Date.Subtract(array[index].Date);
+                        consolidatedTime = employeeArray[index + 1].Date - employeeArray[index].Date;
+                        minutes = (int)consolidatedTime.TotalMinutes;
+                        ConsolidatedEntity consolidatedRecord = GetConsolidatedByEmployeeId(employeeArray[index].EmployeeId, consolidatedTable).Result.FirstOrDefault();
+
+                        if (consolidatedRecord != null)
+                        {
+                            await UpdateConsolidatedRecord(consolidatedTable, consolidatedRecord);
+                        }
+                        else
+                        {
+                            await CreateNewConsolidatedRecord(consolidatedTable, employeeArray[index], minutes);
+                        }
 
                     }
                 }
@@ -60,6 +72,51 @@ namespace EmployeeTracking.Functions.Functions
                 message = message,
                 result = null
             });
+        }
+
+        private static async Task<IActionResult> UpdateConsolidatedRecord(CloudTable consolidatedTable, ConsolidatedEntity consolidatedRecord)
+        {
+            TableOperation updateOperation = TableOperation.Replace(consolidatedRecord);
+            await consolidatedTable.ExecuteAsync(updateOperation);
+
+            return new OkObjectResult(new Response
+            {
+                isSuccess = true,
+                message = $"Record {consolidatedRecord.EmployeeId} has been updated.",
+                result = consolidatedRecord
+            });
+        }
+
+        private static async Task<IActionResult> CreateNewConsolidatedRecord(CloudTable consolidatedTable, EmployeeEntity employeeEntity, int minutes)
+        {
+            ConsolidatedEntity consolidatedEntity = new ConsolidatedEntity
+            {
+                EmployeeId = employeeEntity.EmployeeId,
+                Date = DateTime.UtcNow,
+                MinutesWorked = minutes,
+                ETag = "*",
+                PartitionKey = "CONSOLIDATED",
+                RowKey = Guid.NewGuid().ToString(),
+            };
+
+            TableOperation addOperation = TableOperation.Insert(consolidatedEntity);
+            await consolidatedTable.ExecuteAsync(addOperation);
+
+            return new OkObjectResult(new Response
+            {
+                isSuccess = true,
+                message = $"Record with id: {consolidatedEntity.EmployeeId} has been created.",
+                result = consolidatedEntity
+            });
+        }
+
+        private static async Task<List<ConsolidatedEntity>> GetConsolidatedByEmployeeId(int employeeId, CloudTable consolidatedTable)
+        {
+            string consolidatedFilter = TableQuery.GenerateFilterConditionForInt("EmployeeId", QueryComparisons.Equal, employeeId);
+            TableQuery<ConsolidatedEntity> query = new TableQuery<ConsolidatedEntity>().Where(consolidatedFilter);
+            TableQuerySegment<ConsolidatedEntity> consolidatedMatch = await consolidatedTable.ExecuteQuerySegmentedAsync(query, null);
+
+            return consolidatedMatch.Results;
         }
     }
 }
