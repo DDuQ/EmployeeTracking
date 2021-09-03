@@ -7,7 +7,6 @@ namespace EmployeeTracking.Functions.Entities
     {
         public int EmployeeId { get; set; }
         public DateTime Date { get; set; }
-        public int Type { get; set; }
-        public bool IsConsolidated { get; set; }
+        public int MinutesWorked { get; set; }
     }
 }
