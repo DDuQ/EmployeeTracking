@@ -1,31 +1,28 @@
-using EmployeeTracking.Common.Responses;
-using EmployeeTracking.Functions.Entities;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Azure.WebJobs;
-using Microsoft.Azure.WebJobs.Extensions.Http;
-using Microsoft.Extensions.Logging;
-using Microsoft.WindowsAzure.Storage.Table;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using EmployeeTracking.Functions.Entities;
+using Microsoft.Azure.WebJobs;
+using Microsoft.Azure.WebJobs.Host;
+using Microsoft.Extensions.Logging;
+using Microsoft.WindowsAzure.Storage.Table;
 
 namespace EmployeeTracking.Functions.Functions
 {
-    public static class ConsolidatedAPI
+    public static class ScheduledConsolidatedAPI
     {
         private const int IN = 0;
         private const int OUT = 1;
 
-        [FunctionName(nameof(Consolidated))]
-        public static async Task<IActionResult> Consolidated(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "consolidated")] HttpRequest req,
+        [FunctionName("ScheduledConsolidated")]
+        public static async Task Run(
+            [TimerTrigger("0 */1 * * * *")] TimerInfo myTimer,
             [Table("consolidated", Connection = "AzureWebJobsStorage")] CloudTable consolidatedTable,
             [Table("time", Connection = "AzureWebJobsStorage")] CloudTable employeeTable,
             ILogger log)
         {
-            log.LogInformation("Time consolidation received.");
+            log.LogInformation("Time scheduled consolidation received.");
 
             string employeeFilter = TableQuery.GenerateFilterConditionForBool("IsConsolidated", QueryComparisons.Equal, false);
             TableQuery<EmployeeEntity> query = new TableQuery<EmployeeEntity>().Where(employeeFilter);
@@ -47,7 +44,7 @@ namespace EmployeeTracking.Functions.Functions
                     {
                         consolidatedTime = employeeArray[index + 1].Date - employeeArray[index].Date;
                         minutes = (int)consolidatedTime.TotalMinutes;
-                        
+
                         ConsolidatedEntity consolidatedRecord = GetConsolidatedByEmployeeIdAsync(employeeArray[index].EmployeeId, consolidatedTable).Result.FirstOrDefault();
 
                         if (consolidatedRecord != null)
@@ -68,48 +65,9 @@ namespace EmployeeTracking.Functions.Functions
                 index++;
             }
 
-            string message = $"Consolidation summary. Records added: {consolidated}, records updated: {updated}";
-
-            return new OkObjectResult(new Response
-            {
-                isSuccess = true,
-                message = message,
-                result = null
-            });
+            log.LogInformation($"Consolidation summary. Records added: {consolidated}, records updated: {updated}");
         }
 
-        [FunctionName(nameof(GetConsolidatedRecordsByDate))]
-        public static async Task<IActionResult> GetConsolidatedRecordsByDate(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "consolidated/{date}")] HttpRequest req,
-            [Table("consolidated", Connection = "AzureWebJobsStorage")] CloudTable consolidatedTable,
-            DateTime date,
-            ILogger log)
-        {
-            log.LogInformation($"Get Consolidated records created in: {date} received.");
-
-            string filter = TableQuery.GenerateFilterConditionForDate("Date", QueryComparisons.Equal, date);
-            TableQuery<ConsolidatedEntity> query = new TableQuery<ConsolidatedEntity>().Where(filter);
-            TableQuerySegment<ConsolidatedEntity> consolidatedTimes = await consolidatedTable.ExecuteQuerySegmentedAsync(query, null);
-
-            if (consolidatedTimes == null)
-            {
-                new BadRequestObjectResult(new Response
-                {
-                    isSuccess = false,
-                    message = "Consolidated records not found."
-                });
-            }
-
-            string message = $"Consolidated records has been retrieved.";
-            log.LogInformation(message);
-
-            return new OkObjectResult(new Response
-            {
-                isSuccess = true,
-                message = message,
-                result = consolidatedTimes
-            });
-        }
         private static async Task UpdateIsConsolidatedForEmployeesAsync(EmployeeEntity employeeEntity1, EmployeeEntity employeeEntity2, CloudTable employeeTable)
         {
             employeeEntity1.IsConsolidated = true;
