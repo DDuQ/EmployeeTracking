@@ -12,7 +12,7 @@ namespace EmployeeTracking.Tests.Tests
     public class ScheduledConsolidatedAPITest
     {
         [Fact]
-        public async Task ScheduledConsolidated_Should_Return_200()
+        public async Task ScheduledConsolidated_Should_Log_A_Message()
         {
             //Arrange
             TimerInfo myTimer = default(TimerInfo);
