@@ -28,7 +28,25 @@ namespace EmployeeTracking.Tests.Helpers
             };
         }
 
-        public static DefaultHttpRequest CreateHttpRequest(Guid employeeId, Employee employeeRequest)
+        public static List<EmployeeEntity> GetEmployeeEntities()
+        {
+            return new List<EmployeeEntity>();
+        }
+
+        public static ConsolidatedEntity GetConsolidatedEntity()
+        {
+            return new ConsolidatedEntity
+            {
+                ETag = "*",
+                PartitionKey = "CONSOLIDATED",
+                RowKey = Guid.NewGuid().ToString(),
+                Date = DateTime.UtcNow,
+                MinutesWorked = 0,
+                EmployeeId = 1,
+            };
+        }
+
+        public static DefaultHttpRequest CreateHttpRequestEmployee(Guid employeeId, Employee employeeRequest)
         {
             string request = JsonConvert.SerializeObject(employeeRequest);
             return new DefaultHttpRequest(new DefaultHttpContext())
@@ -38,7 +56,7 @@ namespace EmployeeTracking.Tests.Helpers
             };
         }
 
-        public static DefaultHttpRequest CreateHttpRequest(Guid employeeId)
+        public static DefaultHttpRequest CreateHttpRequestEmployee(Guid employeeId)
         {
             return new DefaultHttpRequest(new DefaultHttpContext())
             {
@@ -46,7 +64,7 @@ namespace EmployeeTracking.Tests.Helpers
             };
         }
 
-        public static DefaultHttpRequest CreateHttpRequest(Employee employeeRequest)
+        public static DefaultHttpRequest CreateHttpRequestEmployee(Employee employeeRequest)
         {
             string request = JsonConvert.SerializeObject(employeeRequest);
             return new DefaultHttpRequest(new DefaultHttpContext())
@@ -55,7 +73,7 @@ namespace EmployeeTracking.Tests.Helpers
             };
         }
 
-        public static DefaultHttpRequest CreateHttpRequest()
+        public static DefaultHttpRequest CreateHttpRequestEmployee()
         {
             return new DefaultHttpRequest(new DefaultHttpContext());
         }
@@ -71,11 +89,55 @@ namespace EmployeeTracking.Tests.Helpers
             };
         }
 
+        //Consolidated Requests
+        public static DefaultHttpRequest CreateHttpRequestConsolidated(Guid consolidatedId, Consolidated consolidatedRequest)
+        {
+            string request = JsonConvert.SerializeObject(consolidatedRequest);
+            return new DefaultHttpRequest(new DefaultHttpContext())
+            {
+                Body = GenerateStreamFromString(request),
+                Path = $"/{consolidatedId}"
+            };
+        }
+
+        public static DefaultHttpRequest CreateHttpRequestConsolidated(Guid consolidatedId)
+        {
+            return new DefaultHttpRequest(new DefaultHttpContext())
+            {
+                Path = $"/{consolidatedId}"
+            };
+        }
+
+        public static DefaultHttpRequest CreateHttpRequestConsolidated(Consolidated consolidatedRequest)
+        {
+            string request = JsonConvert.SerializeObject(consolidatedRequest);
+            return new DefaultHttpRequest(new DefaultHttpContext())
+            {
+                Body = GenerateStreamFromString(request)
+            };
+        }
+
+        public static DefaultHttpRequest CreateHttpRequestConsolidated()
+        {
+            return new DefaultHttpRequest(new DefaultHttpContext());
+        }
+
+        public static Consolidated GetConsolidatedRequest()
+        {
+            return new Consolidated
+            {
+                EmployeeId = 1,
+                Date = DateTime.UtcNow,
+                MinutesWorked = 0,
+            };
+        }
+
         public static Stream GenerateStreamFromString(string stringToConvert)
         {
             MemoryStream stream = new MemoryStream();
             StreamWriter writer = new StreamWriter(stream);
             writer.Write(stringToConvert);
+            writer.Flush();
             stream.Position = 0;
             return stream;
         }
