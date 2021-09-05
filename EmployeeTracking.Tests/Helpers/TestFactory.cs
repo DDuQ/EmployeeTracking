@@ -28,10 +28,8 @@ namespace EmployeeTracking.Tests.Helpers
             };
         }
 
-        public static List<EmployeeEntity> GetEmployeeEntities()
-        {
-            return new List<EmployeeEntity>();
-        }
+        public static List<EmployeeEntity> GetEmployeeEntities() => new List<EmployeeEntity>();
+     
 
         public static ConsolidatedEntity GetConsolidatedEntity()
         {
@@ -45,6 +43,8 @@ namespace EmployeeTracking.Tests.Helpers
                 EmployeeId = 1,
             };
         }
+
+        public static List<ConsolidatedEntity> GetConsolidatedEntities() => new List<ConsolidatedEntity>();
 
         public static DefaultHttpRequest CreateHttpRequestEmployee(Guid employeeId, Employee employeeRequest)
         {
