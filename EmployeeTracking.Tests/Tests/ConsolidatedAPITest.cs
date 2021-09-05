@@ -33,5 +33,22 @@ namespace EmployeeTracking.Tests.Tests
             Assert.Equal(StatusCodes.Status200OK, result.StatusCode);
         }
 
+        [Fact]
+        public async void GetConsolidatedRecordsByDate_Should_Return_200()
+        {
+            //Arrange
+            MockCloudTableConsolidated mockConsolidated = new MockCloudTableConsolidated(new Uri("http://127.0.0.1:10002/devstoreaccount1/reports"));
+            Consolidated consolidatedRequest = TestFactory.GetConsolidatedRequest();
+            DateTime date = DateTime.UtcNow;
+            DefaultHttpRequest request = TestFactory.CreateHttpRequestConsolidated(consolidatedRequest);
+
+            //Act
+            IActionResult response = await ConsolidatedAPI.GetConsolidatedRecordsByDate(request, mockConsolidated, date, logger);
+
+            //Assert
+            OkObjectResult result = (OkObjectResult)response;
+            Assert.Equal(StatusCodes.Status200OK, result.StatusCode);
+        }
+
     }
 }
